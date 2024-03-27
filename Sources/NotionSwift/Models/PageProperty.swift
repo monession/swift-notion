@@ -48,6 +48,104 @@ public enum PagePropertyType {
 }
 
 extension PagePropertyType {
+    
+    public var asString: String? {
+        switch self {
+        case .richText(let array):
+            return array.compactMap(\.plainText).joined()
+        case .number(let decimal):
+            return decimal.map(String.init)
+        case .select(let selectPropertyValue):
+            return selectPropertyValue.flatMap(\.name)
+        case .multiSelect(let array):
+            return array.compactMap(\.name).joined(separator: ", ")
+        case .date(let dateRange):
+            return dateRange?.asString(with: "dd/MM/yyyy")
+        case .formula(let formulaPropertyValue):
+            return formulaPropertyValue.asString
+        case .relation(let array, _):
+            return array.map(\.rawValue).joined(separator: ", ")
+        case .rollup(let rollupPropertyValue):
+            return rollupPropertyValue.asString
+        case .title(let array):
+            return array.compactMap(\.plainText).joined()
+        case .people(let array):
+            return array.compactMap(\.name).joined(separator: ", ")
+        case .files(let array):
+            return array.map(\.name).joined(separator: ", ")
+        case .checkbox(let bool):
+            return bool.asString
+        case .url(let uRL):
+            return uRL?.absoluteString
+        case .email(let string):
+            return string
+        case .phoneNumber(let string):
+            return string
+        case .createdTime(let date):
+            return date.asString(with: "dd/MM/yyyy")
+        case .createdBy(let user):
+            return user.name
+        case .lastEditedTime(let date):
+            return date.asString(with: "dd/MM/yyyy")
+        case .lastEditedBy(let user):
+            return user.name
+        case .status(let statusPropertyValue):
+            return statusPropertyValue?.name
+        case .unknown(let type):
+            return type
+        }
+    }
+}
+
+extension Decimal {
+    var asString: String {
+        "\(self)"
+    }
+}
+
+extension Bool {
+    var asString: String {
+        String(self)
+    }
+}
+
+extension DateValue {
+    
+    func asString(with format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        switch self {
+        case .dateOnly(let date):
+            return formatter.string(from: date)
+        case .dateAndTime(let date):
+            return formatter.string(from: date)
+        }
+    }
+}
+
+extension DateRange {
+    
+    func asString(with format: String) -> String {
+        [
+            start.asString(with: format),
+            end?.asString(with: format)
+        ]
+            .compactMap { $0 }
+            .joined(separator: " -> ")
+    }
+}
+
+extension Date {
+    
+    func asString(with format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = format
+        return formatter.string(from: self)
+    }
+}
+
+
+extension PagePropertyType {
     public struct SelectPropertyValue {
         public let id: EntityIdentifier<SelectPropertyValue, String>?
         public let name: String?
@@ -97,18 +195,48 @@ extension PagePropertyType {
     }
 
     public enum FormulaPropertyValue {
+
         case string(String?)
         case number(Decimal?)
         case boolean(Bool?)
         case date(DateRange?)
         case unknown
+        
+        public var asString: String? {
+            switch self {
+            case .string(let string):
+                return string
+            case .number(let decimal):
+                return decimal?.asString
+            case .boolean(let bool):
+                return bool?.asString
+            case .date(let dateRange):
+                return dateRange?.asString(with: "dd/MM/yyyy")
+            case .unknown:
+                return "UNKNOWN"
+            }
+        }
     }
 
     public enum RollupPropertyValue {
+
         case array([PagePropertyType])
         case number(Decimal?)
         case date(DateRange?)
         case unknown
+        
+        public var asString: String? {
+            switch self {
+            case .number(let decimal):
+                return decimal?.asString
+            case .array(let array):
+                return array.compactMap(\.asString).joined(separator: ", ")
+            case .date(let dateRange):
+                return dateRange?.asString(with: "dd/MM/yyyy")
+            case .unknown:
+                return "UNKNOWN"
+            }
+        }
     }
     
     public struct StatusPropertyValue {
