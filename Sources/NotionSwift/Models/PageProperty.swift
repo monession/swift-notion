@@ -222,7 +222,7 @@ extension PagePropertyType: Codable {
                 [PageRelation].self,
                 forKey: .relation
             )
-            let hasMore = try container.decode(Bool.self, forKey: .hasMore)
+            let hasMore = try container.decodeIfPresent(Bool.self, forKey: .hasMore) ?? false
             self = .relation(value.map(\.id), hasMore: hasMore)
         case CodingKeys.rollup.stringValue:
             let value = try container.decode(
